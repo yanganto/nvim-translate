@@ -1,20 +1,23 @@
 # Copyright (C) 2011-2012 Google Inc.
 #               2016      YouCompleteMe contributors
+#               2017      Antonio
 #
-# This file is part of YouCompleteMe.
+# This file is part of nvim-translate, and most of part is from YouCompleteMe project
+# https://github.com/Valloric/YouCompleteMe
 #
-# YouCompleteMe is free software: you can redistribute it and/or modify
+#
+# nvim-translate is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# YouCompleteMe is distributed in the hope that it will be useful,
+# nvim-translate is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with YouCompleteMe.  If not, see <http://www.gnu.org/licenses/>.
+# along with nvim-translate.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import unicode_literals
 from __future__ import print_function
@@ -29,9 +32,10 @@ import os
 import json
 import re
 from collections import defaultdict
-from ycmd.utils import ( GetCurrentDirectory, JoinLinesAsUnicode, ToBytes,
-                         ToUnicode )
-from ycmd import user_options_store
+
+from utils import (GetCurrentDirectory, JoinLinesAsUnicode, ToBytes, ToUnicode)
+#from ycmd import user_options_store
+
 
 BUFFER_COMMAND_MAP = { 'same-buffer'      : 'edit',
                        'horizontal-split' : 'split',
@@ -382,44 +386,44 @@ def GetVimCommand( user_command, default = 'edit' ):
 
 
 # Both |line| and |column| need to be 1-based
-def JumpToLocation( filename, line, column ):
-  # Add an entry to the jumplist
-  vim.command( "normal! m'" )
-
-  if filename != GetCurrentBufferFilepath():
-    # We prefix the command with 'keepjumps' so that opening the file is not
-    # recorded in the jumplist. So when we open the file and move the cursor to
-    # a location in it, the user can use CTRL-O to jump back to the original
-    # location, not to the start of the newly opened file.
-    # Sadly this fails on random occasions and the undesired jump remains in the
-    # jumplist.
-    user_command = user_options_store.Value( 'goto_buffer_command' )
-
-    if user_command == 'new-or-existing-tab':
-      if TryJumpLocationInOpenedTab( filename, line, column ):
-        return
-      user_command = 'new-tab'
-
-    vim_command = GetVimCommand( user_command )
-    try:
-      vim.command( 'keepjumps {0} {1}'.format( vim_command,
-                                               EscapedFilepath( filename ) ) )
-    # When the file we are trying to jump to has a swap file
-    # Vim opens swap-exists-choices dialog and throws vim.error with E325 error,
-    # or KeyboardInterrupt after user selects one of the options.
-    except vim.error as e:
-      if 'E325' not in str( e ):
-        raise
-      # Do nothing if the target file is still not opened (user chose (Q)uit)
-      if filename != GetCurrentBufferFilepath():
-        return
-    # Thrown when user chooses (A)bort in .swp message box
-    except KeyboardInterrupt:
-      return
-  vim.current.window.cursor = ( line, column - 1 )
-
-  # Center the screen on the jumped-to location
-  vim.command( 'normal! zz' )
+# def JumpToLocation( filename, line, column ):
+#   # Add an entry to the jumplist
+#   vim.command( "normal! m'" )
+#
+#   if filename != GetCurrentBufferFilepath():
+#     # We prefix the command with 'keepjumps' so that opening the file is not
+#     # recorded in the jumplist. So when we open the file and move the cursor to
+#     # a location in it, the user can use CTRL-O to jump back to the original
+#     # location, not to the start of the newly opened file.
+#     # Sadly this fails on random occasions and the undesired jump remains in the
+#     # jumplist.
+#     user_command = user_options_store.Value( 'goto_buffer_command' )
+#
+#     if user_command == 'new-or-existing-tab':
+#       if TryJumpLocationInOpenedTab( filename, line, column ):
+#         return
+#       user_command = 'new-tab'
+#
+#     vim_command = GetVimCommand( user_command )
+#     try:
+#       vim.command( 'keepjumps {0} {1}'.format( vim_command,
+#                                                EscapedFilepath( filename ) ) )
+#     # When the file we are trying to jump to has a swap file
+#     # Vim opens swap-exists-choices dialog and throws vim.error with E325 error,
+#     # or KeyboardInterrupt after user selects one of the options.
+#     except vim.error as e:
+#       if 'E325' not in str( e ):
+#         raise
+#       # Do nothing if the target file is still not opened (user chose (Q)uit)
+#       if filename != GetCurrentBufferFilepath():
+#         return
+#     # Thrown when user chooses (A)bort in .swp message box
+#     except KeyboardInterrupt:
+#       return
+#   vim.current.window.cursor = ( line, column - 1 )
+#
+#   # Center the screen on the jumped-to location
+#   vim.command( 'normal! zz' )
 
 
 def NumLinesInBuffer( buffer_object ):
