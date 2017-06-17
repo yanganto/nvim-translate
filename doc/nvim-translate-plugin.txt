@@ -1,0 +1,19 @@
+*nvim-translate-plugin.txt* A neovim translate plugin.
+
+                  Neovim Translate Plugin
+
+==============================================================================
+
+CONTENTS                                 *nvim-translate-plugin-contents*
+
+    1. Introduction .................... |nvim-translate-plugin-intro|
+
+
+Original Author:    Antonio Yang
+License:            GNU
+
+INTRODUCTION                                *nvim-translate-plugin-intro*
+
+A simple translate Python plugin in the new remote plugin style used by
+Neovim.
+
