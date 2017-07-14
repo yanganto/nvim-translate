@@ -7,6 +7,7 @@
 CONTENTS                                 *nvim-translate-plugin-contents*
 
     1. Introduction .................... |nvim-translate-plugin-intro|
+    2. configure ....................... |nvim-translate-plugin-config|
 
 
 Original Author:    Antonio Yang
@@ -17,3 +18,7 @@ INTRODUCTION                                *nvim-translate-plugin-intro*
 A simple translate Python plugin in the new remote plugin style used by
 Neovim.
 
+CONFIGURE				    *nvim-translate-plugin-config*
+
+The destinate laguage can be specified in init.vim file as follow
+set g:translate_dest_lang='zh-TW'

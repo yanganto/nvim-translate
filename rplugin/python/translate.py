@@ -16,8 +16,8 @@ class TestPlugin(object):
         wait_for_translate = self.nvim.current.line
         self.post_vim_message('Translating...')
 
-        # TODO translate language as config
-        self.post_vim_message(self.engin.translate(wait_for_translate, dest='zh-TW').text.strip(), warning=False)
+        dest_lang = self.nvim.vars.get('translate_dest_lang', 'zh-TW')
+        self.post_vim_message(self.engin.translate(wait_for_translate, dest=dest_lang).text.strip(), warning=False)
 
 
     # This function was refactor from YouCompleteMe vimsupport.py
@@ -43,21 +43,21 @@ class TestPlugin(object):
       message = to_unicode( message )
 
       if truncate:
-        self.nvim_width = get_int_value( '&columns' )
+        # self.nvim_width = get_int_value( '&columns' )
 
         message = message.replace( '\n', ' ' )
         if len( message ) > self.nvim_width:
           message = message[ : self.nvim_width - 4 ] + '...'
 
-        old_ruler = get_int_value( '&ruler' )
-        old_showcmd = get_int_value( '&showcmd' )
+        # old_ruler = get_int_value( '&ruler' )
+        # old_showcmd = get_int_value( '&showcmd' )
         self.nvim.command( 'set noruler noshowcmd' )
 
         self.nvim.command( "{0} '{1}'".format( echo_command,
                                          escape_for_vim( message ) ) )
 
-        SetVariableValue( '&ruler', old_ruler )
-        SetVariableValue( '&showcmd', old_showcmd )
+        # SetVariableValue( '&ruler', old_ruler )
+        # SetVariableValue( '&showcmd', old_showcmd )
       else:
         for line in message.split( '\n' ):
           self.nvim.command( "{0} '{1}'".format( echo_command,
@@ -81,8 +81,8 @@ def to_unicode( value ):
 
 
 # This function was refactor from YouCompleteMe utils.py
-def get_int_value( variable ):
-  return int( vim.eval( variable ) )
+# def get_int_value( variable ):
+#   return int( vim.eval( variable ) )
 
 
 # This function was refactor from YouCompleteMe utils.py
