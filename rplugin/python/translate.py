@@ -1,3 +1,5 @@
+from os import path
+import tempfile
 import neovim
 from googletrans import Translator
 
@@ -8,6 +10,7 @@ class TestPlugin(object):
     def __init__(self, nvim):
         self.nvim = nvim
         self.engin = Translator()
+        self.dest_lang = self.nvim.vars.get('translate_dest_lang', 'zh-TW')
 
 
     @neovim.command("Translate", range='', nargs='*')
@@ -15,9 +18,32 @@ class TestPlugin(object):
         """Translate the current line"""
         wait_for_translate = self.nvim.current.line
         self.post_vim_message('Translating...')
+        self.post_vim_message(self.engin.translate(wait_for_translate, dest=self.dest_lang).text.strip(), warning=False)
 
-        dest_lang = self.nvim.vars.get('translate_dest_lang', 'zh-TW')
-        self.post_vim_message(self.engin.translate(wait_for_translate, dest=dest_lang).text.strip(), warning=False)
+
+    @neovim.command("TranslateAll", range='', nargs='*')
+    def translate_all(self, args, range):
+        """Translate the all paragraphs"""
+        def to_paragraphs(lines):
+            paragraphs = [""]
+            for raw_line in lines:
+                line = raw_line.strip()
+                if line:
+                    paragraphs[-1] += line
+                else:
+                    paragraphs += ["", ""]
+            if not paragraphs[-1]:
+                paragraphs.pop()    
+            return paragraphs
+
+        wait_for_translate = to_paragraphs(self.nvim.current.buffer[:])
+        self.post_vim_message('Translating...')
+        self.nvim.command('vsplit ' + path.join(tempfile.gettempdir(), 'nvim-translate.txt'))
+        def paragraph_translate(p):
+            return  self.engin.translate(p, dest=self.dest_lang).text if p else ""
+        translated_patagraph = list(map(paragraph_translate, wait_for_translate))
+        self.nvim.current.buffer[:] = translated_patagraph
+        self.post_vim_message('Translation completed')
 
 
     # This function was refactor from YouCompleteMe vimsupport.py
