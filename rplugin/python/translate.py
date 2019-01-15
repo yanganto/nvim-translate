@@ -1,11 +1,11 @@
 from os import path
 import tempfile
-import neovim
+import pynvim
 from googletrans import Translator
 
 
-@neovim.plugin
-class TestPlugin(object):
+@pynvim.plugin
+class TranslatePlugin(object):
 
     def __init__(self, nvim):
         self.nvim = nvim
@@ -13,7 +13,7 @@ class TestPlugin(object):
         self.dest_lang = self.nvim.vars.get('translate_dest_lang', 'zh-TW')
 
 
-    @neovim.command("Translate", range='', nargs='*')
+    @pynvim.command("Translate", range='', nargs='*')
     def translate(self, args, range):
         """Translate the current line"""
         wait_for_translate = self.nvim.current.line
@@ -21,7 +21,7 @@ class TestPlugin(object):
         self.post_vim_message(self.engin.translate(wait_for_translate, dest=self.dest_lang).text.strip(), warning=False)
 
 
-    @neovim.command("TranslateAll", range='', nargs='*')
+    @pynvim.command("TranslateAll", range='', nargs='*')
     def translate_all(self, args, range):
         """Translate the all paragraphs"""
         def to_paragraphs(lines):
@@ -33,7 +33,7 @@ class TestPlugin(object):
                 else:
                     paragraphs += ["", ""]
             if not paragraphs[-1]:
-                paragraphs.pop()    
+                paragraphs.pop()
             return paragraphs
 
         wait_for_translate = to_paragraphs(self.nvim.current.buffer[:])
@@ -91,7 +91,7 @@ class TestPlugin(object):
 
       if warning:
         self.nvim.command( 'echohl None' )
-        
+
 # This function was refactor from YouCompleteMe utils.py
 # Returns a unicode type; either the new python-future str type or the real
 # unicode type. The difference shouldn't matter.
