@@ -1,6 +1,6 @@
 # Neovim Translate
 - A nvim plugin for translate
-- version 0.0.4
+- version 0.0.5
 
 ## Requirement
 - Python
@@ -13,9 +13,12 @@
 
 ## Usage
 - `:Translate`
-		- translate the current line
+  - translate the current line
+- `:'<,'>Translate`
+  - V-LINE mode
+  - translate the selected lines
 - `:TranslateAll`
-		- translate all the content in the current window
+  - translate all the content in the current window
 
 ## Settings
 set translate target language as following in `init.vim`
