@@ -16,7 +16,7 @@ class TranslatePlugin(object):
     @pynvim.command("Translate", range='', nargs='*')
     def translate(self, args, range):
         """Translate the current line"""
-        wait_for_translate = self.nvim.current.line
+        wait_for_translate = "".join(self.nvim.current.buffer[range[0] - 1:range[1]])
         self.post_vim_message('Translating...')
         self.post_vim_message(
             self.engin.translate(wait_for_translate, dest=self.dest_lang).text.strip(),

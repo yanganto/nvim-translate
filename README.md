@@ -22,6 +22,7 @@ set translate target language as following in `init.vim`
 `set g:translate_dest_lang='ja'`
 
 ## Change log
+- 0.0.5 - support V-Line select mode
 - 0.0.4 - update pynvim package
 - 0.0.3 - translate full paragraph function
 - 0.0.2 - translate destinate language setting
