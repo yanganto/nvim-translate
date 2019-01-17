@@ -31,6 +31,9 @@ set translate target language as following in `init.vim`
 - 0.0.2 - translate destinate language setting
 - 0.0.1 - basic function
 
+## Snapshot
+![snapshot](https://raw.githubusercontent.com/yanganto/nvim-translate/master/snapshot.png)
+
 ## Thanks
 Thanks [YouCompleteMe](https://github.com/Valloric/YouCompleteMe) contributor and Google Inc.
 This plugin use lots of function from YouCompleteMe within GNU licence.
