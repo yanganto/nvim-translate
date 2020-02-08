@@ -1,15 +1,16 @@
 # Neovim Translate
-- A nvim plugin for translate
+- A neovim plugin for translate
 - version 0.0.5
 
 ## Requirement
+- neovim
 - Python
 - googletrans (PYPI package)
 - pynvim (PYPI package)
 
 
-## Installing
-- `pacman -S neovim python-neovim`
+## Dependency
+- `pip install googletrans pynvim`
 
 ## Usage
 - `:Translate`
@@ -17,6 +18,8 @@
 - `:'<,'>Translate`
   - V-LINE mode
   - translate the selected lines
+  - Ex: `:39,40Translate` will translate the line 39 to line 40
+  - or use `shift` + `v` to select the lines than press `:Translate`
 - `:TranslateAll`
   - translate all the content in the current window
 
@@ -35,5 +38,5 @@ set translate target language as following in `init.vim`
 ![snapshot](https://raw.githubusercontent.com/yanganto/nvim-translate/master/snapshot.png)
 
 ## Thanks
-Thanks [YouCompleteMe](https://github.com/Valloric/YouCompleteMe) contributor and Google Inc.
+Many thanks for [YouCompleteMe](https://github.com/Valloric/YouCompleteMe) contributor and Google Inc.
 This plugin use lots of function from YouCompleteMe within GNU licence.
