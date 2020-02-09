@@ -10,14 +10,32 @@ class TranslatePlugin(object):
     def __init__(self, nvim):
         self.nvim = nvim
         self.engin = Translator()
+
+        # please use local string such as 'zh-TW', 'ja', default is 'zh-TW'
         self.dest_lang = self.nvim.vars.get('translate_dest_lang', 'zh-TW')
+
+        # the spacer between lines,
+        # some plugin will automatically trim the space in the end of line
+        # so the spacer set " " as default for english
+        # if you are using different language, this may set as ""
+        self.v_line_spacer = self.nvim.vars.get('translate_v_line_spacer', " ")
+
+        self.wording_transformer = []
+
+        # use 0, 1 to enable or disable the snake style correction, default is 1
+        if int(self.nvim.vars.get('translate_correct_snake_style', 1)):
+            self.wording_transformer.append(lambda x: x.replace('_', ' '))
 
 
     @pynvim.command("Translate", range='', nargs='*')
     def translate(self, args, range):
         """Translate the current line"""
-        wait_for_translate = "".join(self.nvim.current.buffer[range[0] - 1:range[1]])
+        wait_for_translate = self.v_line_spacer.join(self.nvim.current.buffer[range[0] - 1:range[1]])
         self.post_vim_message('Translating...')
+
+        for f in self.wording_transformer:
+            wait_for_translate = f(wait_for_translate)
+
         self.post_vim_message(
             self.engin.translate(wait_for_translate, dest=self.dest_lang).text.strip(),
             warning=False)
