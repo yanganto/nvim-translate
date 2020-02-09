@@ -60,8 +60,11 @@ class TranslatePlugin(object):
         self.post_vim_message('Translating...')
         self.nvim.command('vsplit ' + path.join(tempfile.gettempdir(), 'nvim-translate.txt'))
 
-        def paragraph_translate(p):
-            return self.engin.translate(p, dest=self.dest_lang).text if p else ""
+        def paragraph_translate(raw_paragraph):
+            input_paragraph = raw_paragraph
+            for f in self.wording_transformer:
+                input_paragraph = f(input_paragraph)
+            return self.engin.translate(input_paragraph, dest=self.dest_lang).text if input_paragraph else ""
         translated_patagraph = list(map(paragraph_translate, wait_for_translate))
         self.nvim.current.buffer[:] = translated_patagraph
         self.post_vim_message('Translation completed')
