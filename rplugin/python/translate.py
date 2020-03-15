@@ -2,7 +2,11 @@ from os import path
 import tempfile
 import pynvim
 from googletrans import Translator
+from enum import Enum
 
+class DisplayType(Enum):
+    STATUS = 0
+    POPUP = 1
 
 @pynvim.plugin
 class TranslatePlugin(object):
@@ -20,6 +24,10 @@ class TranslatePlugin(object):
         # if you are using different language, this may set as ""
         self.v_line_spacer = self.nvim.vars.get('translate_v_line_spacer', " ")
 
+        # NOTE: The config is auto use 'pop' for you
+        # setup display options, status, pop
+        self.display_option = DisplayType.STATUS if self.nvim.vars.get('translate_display_option') == 'status' else DisplayType.POPUP
+
         self.wording_transformer = []
 
         # use 0, 1 to enable or disable the snake style correction, default is 1
@@ -36,7 +44,7 @@ class TranslatePlugin(object):
         for f in self.wording_transformer:
             wait_for_translate = f(wait_for_translate)
 
-        self.post_vim_message(
+        self.display(
             self.engin.translate(wait_for_translate, dest=self.dest_lang).text.strip(),
             warning=False)
 
@@ -106,6 +114,20 @@ class TranslatePlugin(object):
 
             if warning:
                 self.nvim.command('echohl None')
+
+    def pop(self, message, warning=True, truncate=False):
+        # TODO
+        # work on here, warning and truncate is not the requirement, but please some note for me,
+        # so I can do this part by my self thanks.
+
+        # following line is can be removed when pop window is done
+        self.post_vim_message("[POPWINDOW]" + message, warning=True, truncate=False)
+
+    def display(self, message, warning=True, truncate=False):
+        if self.display_option == DisplayType.POPUP:
+            self.pop(message, warning=True, truncate=False)
+        else:
+            self.post_vim_message(message, warning=True, truncate=False)
 
 def to_unicode(value):
     if not value:
