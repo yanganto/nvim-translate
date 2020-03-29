@@ -3,18 +3,6 @@ import tempfile
 import pynvim
 from googletrans import Translator
 
-def rust_byte_string_to_string(wait_for_translate):
-    wait_for_translate = wait_for_translate.split("[")[1].split(']')[0].split(',')
-    output = []
-    for s in wait_for_translate:
-        if h := s.split('u')[0]:
-            for i in filter(lambda x: x, h.split(' ')):
-                try:
-                    output.append(int(i))
-                except:
-                    pass
-    return bytearray(output).decode('utf-8')
-
 
 @pynvim.plugin
 class TranslatePlugin(object):
@@ -53,14 +41,14 @@ class TranslatePlugin(object):
             warning=False)
 
 
-    @pynvim.command("ByteTranslate", range='', nargs='*')
+    @pynvim.command("TranslateByte", range='', nargs='*')
     def byte_translate(self, args, range):
-        """Translate the current line"""
+        """Translate Byte from the current line"""
         wait_for_translate = self.v_line_spacer.join(self.nvim.current.buffer[range[0] - 1:range[1]])
         self.post_vim_message('Decoding...')
 
         self.post_vim_message(
-            rust_byte_string_to_string(wait_for_translate),
+            self.rust_byte_string_to_string(wait_for_translate),
             warning=False)
 
 
@@ -130,6 +118,20 @@ class TranslatePlugin(object):
             if warning:
                 self.nvim.command('echohl None')
 
+
+    def rust_byte_string_to_string(self, wait_for_translate):
+        wait_for_translate = wait_for_translate.split("[")[1].split(']')[0].split(',')
+        output = []
+        for s in wait_for_translate:
+            if h := s.split('u')[0]:
+                for i in filter(lambda x: x, h.split(' ')):
+                    try:
+                        output.append(int(i))
+                    except:
+                        pass
+        return bytearray(output).decode('utf-8')
+
+
 def to_unicode(value):
     if not value:
         return str()
@@ -142,8 +144,3 @@ def to_unicode(value):
 
 def escape_for_vim(text):
     return to_unicode(text.replace("'", "''"))
-
-
-if __name__ == '__main__':
-    assert "*+" == rust_byte_string_to_string("[ 42u8, 43 ]")
-    assert "*+" == rust_byte_string_to_string("[ 42 as u8, 43 ]")
