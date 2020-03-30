@@ -1,12 +1,14 @@
 # Neovim Translate
 - A neovim plugin for translate
-- version 0.0.6
+- version 0.0.7
 
 ## Requirement
 - neovim
 - Python
 - googletrans (PYPI package)
 - pynvim (PYPI package)
+- `develop` branch is for the OS using python3 as default
+- `master` branch is for the OS using python2 as default
 
 
 ## Dependency
@@ -22,6 +24,10 @@
   - or use `shift` + `v` to select the lines than press `:Translate`
 - `:TranslateAll`
   - translate all the content in the current window
+- `:TranslateByte`
+  - Like the `Translate` command, and translate a array of numbers into String
+  - It's a good tool for Rust code debuging
+- If you update the script, please use `:UpdateRemotePlugins` to update the new commands
 
 ## Settings
 set translate target language as following in `init.vim`
@@ -40,6 +46,7 @@ let g:translate_correct_snake_style=1
 ```
 
 ## Change log
+- 0.0.7 - Translate byte array into UTF-8 string
 - 0.0.6 - Handle snake style wording
 - 0.0.5 - support V-Line select mode
 - 0.0.4 - update pynvim package
