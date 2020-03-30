@@ -55,7 +55,10 @@ let g:translate_correct_snake_style=1
 - 0.0.1 - basic function
 
 ## Snapshot
+Translate from foreign language  
 ![snapshot](https://raw.githubusercontent.com/yanganto/nvim-translate/master/snapshot.png)
+Translate from byte code  
+![snapshot](https://raw.githubusercontent.com/yanganto/nvim-translate/master/snapshot2.png)
 
 ## Thanks
 Many thanks for [YouCompleteMe](https://github.com/Valloric/YouCompleteMe) contributor and Google Inc.
