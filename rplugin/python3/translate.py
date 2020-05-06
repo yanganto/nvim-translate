@@ -8,6 +8,24 @@ class DisplayType(Enum):
     STATUS = 0
     POPUP = 1
 
+class CTERMColours(Enum):
+    BLACK = 0
+    DARKBLUE = 1
+    DARKGREEN = 2
+    DARKCYAN = 3
+    DARKRED = 4
+    DARKMAGENTA = 5
+    BROWN = 6
+    GREY = 7
+    DARKGREY = 8
+    BLUE = 9
+    GREEN = 10
+    CYAN = 11
+    RED = 12
+    MAGENTA = 13
+    YELLOW = 14
+    WHITE = 15
+
 @pynvim.plugin
 class TranslatePlugin(object):
 
@@ -119,7 +137,7 @@ class TranslatePlugin(object):
         # TODO
         # work on here, warning and truncate is not the requirement, but please some note for me,
         # so I can do this part by my self thanks.
-        _id = createWindow(self.nvim, [message], 2);
+        _id = create_window(self.nvim, [message], min_height=2);
 
         # following line is can be removed when pop window is done
         self.post_vim_message("[POPWINDOW]" + message, warning=True, truncate=False)
@@ -143,38 +161,48 @@ def to_unicode(value):
 def escape_for_vim(text):
     return to_unicode(text.replace("'", "''"))
 
-def createWindow(nvim, textArray, min_height = 1, width=20, closeLastWindow=True):
+def create_window(nvim, textArray, foreground=CTERMColours.WHITE.value, background=CTERMColours.BLACK.value, width=20, min_height = 1, close_last_window=True):
     """
     Creates a floating window in nvim. The window position is relative to the cursor and is offset by one column.
 
     Returns:
         The handle (ID) of the window, or 0 on error
-
-    TODO:
-        Add functionality to customize background and foreground colors
     """
 
-    # Proper error-raising will be added later
-    assert(len(textArray) > 0);
+    # Convert Enum to integer
+    if type (foreground) == CTERMColours: foreground = foreground.value
+    if type (background) == CTERMColours: background = background.value
 
     # Close the last created window
-    if(closeLastWindow and bool(nvim.eval("exists('win')"))):
-      closeWindow(nvim);
+    if(close_last_window and bool(nvim.eval("exists('win')"))):
+      close_window(nvim);
 
     vimScriptCommand = f"""
-    let buf = ''\n let buf = nvim_create_buf(v:false, v:true)
+    let buf = nvim_create_buf(v:false, v:true)
     call nvim_buf_set_lines(buf, 0, -1, v:true, {str(textArray)})
     let opts = {{'relative':'cursor', 'width': {width}, 'height': {max(len(textArray), min_height)}, 'col': 1, 'row': 0, 'anchor': 'NW', 'style': 'minimal'}}
     let win = nvim_open_win(buf, v:true, opts)
+    call nvim_win_set_option(win, 'winhl', 'Normal:popupwindow')
+    highlight popupwindow ctermfg={foreground} ctermbg={background}
     """;
+
     nvim.command(vimScriptCommand)
 
-    # Return the ID of the window
-    return nvim.eval("win");
+    # Return the ID of the created window
+    return last_window(nvim)
 
-def closeWindow(nvim, windowID = None):
+def close_window(nvim, windowID = None):
     """Close a window based on an ID, or close the most recently created window"""
 
     if(windowID == None):
-        windowID = nvim.eval("win")
-    nvim.command(f"call nvim_win_close({windowID}, v:false)")
+        windowID = last_window(nvim)
+
+    # Only close the window if the ID is registered
+    if(window_exists(nvim, windowID)):
+      nvim.command(f"call nvim_win_close({windowID}, v:true)")
+
+def window_exists(nvim, windowID):
+    return bool(nvim.eval(f"nvim_win_is_valid({windowID})"))
+
+def last_window(nvim):
+    return nvim.eval("win")
