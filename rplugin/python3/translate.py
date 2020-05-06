@@ -119,6 +119,7 @@ class TranslatePlugin(object):
         # TODO
         # work on here, warning and truncate is not the requirement, but please some note for me,
         # so I can do this part by my self thanks.
+        _id = createWindow(self.nvim, [message], 2);
 
         # following line is can be removed when pop window is done
         self.post_vim_message("[POPWINDOW]" + message, warning=True, truncate=False)
@@ -141,3 +142,39 @@ def to_unicode(value):
 
 def escape_for_vim(text):
     return to_unicode(text.replace("'", "''"))
+
+def createWindow(nvim, textArray, min_height = 1, width=20, closeLastWindow=True):
+    """
+    Creates a floating window in nvim. The window position is relative to the cursor and is offset by one column.
+
+    Returns:
+        The handle (ID) of the window, or 0 on error
+
+    TODO:
+        Add functionality to customize background and foreground colors
+    """
+
+    # Proper error-raising will be added later
+    assert(len(textArray) > 0);
+
+    # Close the last created window
+    if(closeLastWindow and bool(nvim.eval("exists('win')"))):
+      closeWindow(nvim);
+
+    vimScriptCommand = f"""
+    let buf = ''\n let buf = nvim_create_buf(v:false, v:true)
+    call nvim_buf_set_lines(buf, 0, -1, v:true, {str(textArray)})
+    let opts = {{'relative':'cursor', 'width': {width}, 'height': {max(len(textArray), min_height)}, 'col': 1, 'row': 0, 'anchor': 'NW', 'style': 'minimal'}}
+    let win = nvim_open_win(buf, v:true, opts)
+    """;
+    nvim.command(vimScriptCommand)
+
+    # Return the ID of the window
+    return nvim.eval("win");
+
+def closeWindow(nvim, windowID = None):
+    """Close a window based on an ID, or close the most recently created window"""
+
+    if(windowID == None):
+        windowID = nvim.eval("win")
+    nvim.command(f"call nvim_win_close({windowID}, v:false)")
