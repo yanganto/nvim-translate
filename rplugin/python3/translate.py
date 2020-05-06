@@ -18,12 +18,32 @@ class CTERMColours(Enum):
     BROWN = 6
     GREY = 7
     DARKGREY = 8
+
     BLUE = 9
     GREEN = 10
     CYAN = 11
     RED = 12
     MAGENTA = 13
     YELLOW = 14
+    WHITE = 15
+
+class CTERMColours_8(Enum):
+    BLACK = 0
+    DARKBLUE = 1
+    DARKGREEN = 2
+    DARKCYAN = 3
+    DARKRED = 4
+    DARKMAGENTA = 5
+    BROWN = 6
+    GREY = 7
+    DARKGREY = 8
+
+    RED = 9
+    GREEN = 10
+    YELLOW = 11
+    BLUE = 12
+    MAGENTA = 13
+    CYAN = 14
     WHITE = 15
 
 @pynvim.plugin
@@ -170,8 +190,8 @@ def create_window(nvim, textArray, foreground=CTERMColours.WHITE.value, backgrou
     """
 
     # Convert Enum to integer
-    if type (foreground) == CTERMColours: foreground = foreground.value
-    if type (background) == CTERMColours: background = background.value
+    if type (foreground) == CTERMColours or type (foreground) == CTERMColours_8: foreground = foreground.value
+    if type (background) == CTERMColours or type (background) == CTERMColours_8: background = background.value
 
     # Close the last created window
     if(close_last_window and bool(nvim.eval("exists('win')"))):
