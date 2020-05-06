@@ -181,7 +181,7 @@ def to_unicode(value):
 def escape_for_vim(text):
     return to_unicode(text.replace("'", "''"))
 
-def create_window(nvim, textArray, foreground=CTERMColours.WHITE.value, background=CTERMColours.BLACK.value, width=20, min_height = 1, close_last_window=True):
+def create_window(nvim, textArray, foreground=CTERMColours.WHITE.value, background=CTERMColours.BLACK.value, width=20, min_height=1, close_last_window=True, opts=None):
     """
     Creates a floating window in nvim. The window position is relative to the cursor and is offset by one column.
 
@@ -197,10 +197,21 @@ def create_window(nvim, textArray, foreground=CTERMColours.WHITE.value, backgrou
     if(close_last_window and bool(nvim.eval("exists('win')"))):
       close_window(nvim);
 
+    if opts == None:
+        opts = {
+          'relative': 'cursor',
+          'width':  width,
+          'height': max(len(textArray), min_height),
+          'col': 1,
+          'row': 0,
+          'anchor': 'NW',
+          'style': 'minimal'
+      }
+
     vimScriptCommand = f"""
     let buf = nvim_create_buf(v:false, v:true)
     call nvim_buf_set_lines(buf, 0, -1, v:true, {str(textArray)})
-    let opts = {{'relative':'cursor', 'width': {width}, 'height': {max(len(textArray), min_height)}, 'col': 1, 'row': 0, 'anchor': 'NW', 'style': 'minimal'}}
+    let opts = {str(opts)}
     let win = nvim_open_win(buf, v:true, opts)
     call nvim_win_set_option(win, 'winhl', 'Normal:popupwindow')
     highlight popupwindow ctermfg={foreground} ctermbg={background}
