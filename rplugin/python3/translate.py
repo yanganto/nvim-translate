@@ -181,7 +181,7 @@ def to_unicode(value):
 def escape_for_vim(text):
     return to_unicode(text.replace("'", "''"))
 
-def create_window(nvim, textArray, foreground=CTERMColours.WHITE.value, background=CTERMColours.BLACK.value, width=20, min_height=1, close_last_window=True, opts=None):
+def create_window(nvim, textArray, foreground=CTERMColours.WHITE.value, background=CTERMColours.DARKGREY.value, width=20, min_height=1, close_last_window=True, opts=None):
     """
     Creates a floating window in nvim. The window position is relative to the cursor and is offset by one column.
 
