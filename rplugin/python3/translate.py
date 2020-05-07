@@ -87,6 +87,7 @@ class TranslatePlugin(object):
         self.fg_color = colorEnum[fgColorSelection] if fgColorSelection in colorEnum._member_names_ else colorEnum.DARKGREY.value
         self.bg_color = colorEnum[bgColorSelection] if bgColorSelection in colorEnum._member_names_ else colorEnum.WHITE.value
 
+
         self.wording_transformer = []
 
         # use 0, 1 to enable or disable the snake style correction, default is 1
@@ -105,6 +106,18 @@ class TranslatePlugin(object):
 
         self.display(
             self.engin.translate(wait_for_translate, dest=self.dest_lang).text.strip(),
+            warning=False)
+
+
+
+    @pynvim.command("TranslateByte", range='', nargs='*')
+    def byte_translate(self, args, range):
+        """Translate Byte from the current line"""
+        wait_for_translate = self.v_line_spacer.join(self.nvim.current.buffer[range[0] - 1:range[1]])
+        self.post_vim_message('Decoding...')
+
+        self.post_vim_message(
+            self.rust_byte_string_to_string(wait_for_translate),
             warning=False)
 
 
@@ -175,19 +188,14 @@ class TranslatePlugin(object):
                 self.nvim.command('echohl None')
 
     def pop(self, message, warning=True, truncate=False):
-        # TODO
-        # work on here, warning and truncate is not the requirement, but please some note for me,
-        # so I can do this part by my self thanks.
         _id = create_window(self.nvim, [message], self.fg_color, self.bg_color, min_height=2);
-
-        # following line is can be removed when pop window is done
-        self.post_vim_message("[POPWINDOW]" + message, warning=True, truncate=False)
 
     def display(self, message, warning=True, truncate=False):
         if self.display_option == DisplayType.POPUP:
             self.pop(message, warning=True, truncate=False)
         else:
             self.post_vim_message(message, warning=True, truncate=False)
+
 
 def to_unicode(value):
     if not value:
