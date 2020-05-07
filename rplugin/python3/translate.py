@@ -8,7 +8,7 @@ class DisplayType(Enum):
     STATUS = 0
     POPUP = 1
 
-class CTERMColours(Enum):
+class CTERMColors(Enum):
     BLACK = 0
     DARKBLUE = 1
     DARKGREEN = 2
@@ -27,7 +27,7 @@ class CTERMColours(Enum):
     YELLOW = 14
     WHITE = 15
 
-class CTERMColours_8(Enum):
+class CTERMColors_8(Enum):
     BLACK = 0
     DARKBLUE = 1
     DARKGREEN = 2
@@ -65,6 +65,27 @@ class TranslatePlugin(object):
         # NOTE: The config is auto use 'pop' for you
         # setup display options, status, pop
         self.display_option = DisplayType.STATUS if self.nvim.vars.get('translate_display_option') == 'status' else DisplayType.POPUP
+
+        # This implementation uses the following variables:
+        #   translate_display_colortype (8 or 16)
+        #   translate_fg_color
+        #   translate_bg_color
+        # NOTE: The config defaults to CTERMColors_8 if no colortype is set
+
+        colorEnum = None
+        colortype = -1 if self.nvim.vars.get("translate_display_colortype") is None else self.nvim.vars.get("translate_display_colortype")
+        if int(colortype) == 8:
+            colorEnum = CTERMColors_8
+        elif int(colortype) == 16:
+            colorEnum = CTERMColors
+        else:
+            colorEnum = CTERMColors_8
+
+        fgColorSelection = ("" if self.nvim.vars.get('translate_fg_color') is None else self.nvim.vars.get('translate_fg_color')).upper()
+        bgColorSelection = ("" if self.nvim.vars.get('translate_bg_color') is None else self.nvim.vars.get('translate_bg_color')).upper()
+
+        self.fg_color = colorEnum[fgColorSelection] if fgColorSelection in colorEnum._member_names_ else colorEnum.DARKGREY.value
+        self.bg_color = colorEnum[bgColorSelection] if bgColorSelection in colorEnum._member_names_ else colorEnum.WHITE.value
 
         self.wording_transformer = []
 
@@ -157,7 +178,7 @@ class TranslatePlugin(object):
         # TODO
         # work on here, warning and truncate is not the requirement, but please some note for me,
         # so I can do this part by my self thanks.
-        _id = create_window(self.nvim, [message], min_height=2);
+        _id = create_window(self.nvim, [message], self.fg_color, self.bg_color, min_height=2);
 
         # following line is can be removed when pop window is done
         self.post_vim_message("[POPWINDOW]" + message, warning=True, truncate=False)
@@ -181,7 +202,7 @@ def to_unicode(value):
 def escape_for_vim(text):
     return to_unicode(text.replace("'", "''"))
 
-def create_window(nvim, textArray, foreground=CTERMColours.WHITE.value, background=CTERMColours.DARKGREY.value, width=20, min_height=1, close_last_window=True, opts=None):
+def create_window(nvim, textArray, foreground=CTERMColors.WHITE.value, background=CTERMColors.DARKGREY.value, width=20, min_height=1, close_last_window=True, opts=None):
     """
     Creates a floating window in nvim. The window position is relative to the cursor and is offset by one column.
 
@@ -190,8 +211,8 @@ def create_window(nvim, textArray, foreground=CTERMColours.WHITE.value, backgrou
     """
 
     # Convert Enum to integer
-    if type (foreground) == CTERMColours or type (foreground) == CTERMColours_8: foreground = foreground.value
-    if type (background) == CTERMColours or type (background) == CTERMColours_8: background = background.value
+    if type (foreground) == CTERMColors or type (foreground) == CTERMColors_8: foreground = foreground.value
+    if type (background) == CTERMColors or type (background) == CTERMColors_8: background = background.value
 
     # Close the last created window
     if(close_last_window and bool(nvim.eval("exists('win')"))):
