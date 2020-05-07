@@ -2,7 +2,49 @@ from os import path
 import tempfile
 import pynvim
 from googletrans import Translator
+from enum import Enum
 
+class DisplayType(Enum):
+    STATUS = 0
+    POPUP = 1
+
+class CTERMColors(Enum):
+    BLACK = 0
+    DARKBLUE = 1
+    DARKGREEN = 2
+    DARKCYAN = 3
+    DARKRED = 4
+    DARKMAGENTA = 5
+    BROWN = 6
+    GREY = 7
+    DARKGREY = 8
+
+    BLUE = 9
+    GREEN = 10
+    CYAN = 11
+    RED = 12
+    MAGENTA = 13
+    YELLOW = 14
+    WHITE = 15
+
+class CTERMColors_8(Enum):
+    BLACK = 0
+    DARKBLUE = 1
+    DARKGREEN = 2
+    DARKCYAN = 3
+    DARKRED = 4
+    DARKMAGENTA = 5
+    BROWN = 6
+    GREY = 7
+    DARKGREY = 8
+
+    RED = 9
+    GREEN = 10
+    YELLOW = 11
+    BLUE = 12
+    MAGENTA = 13
+    CYAN = 14
+    WHITE = 15
 
 @pynvim.plugin
 class TranslatePlugin(object):
@@ -20,6 +62,32 @@ class TranslatePlugin(object):
         # if you are using different language, this may set as ""
         self.v_line_spacer = self.nvim.vars.get('translate_v_line_spacer', " ")
 
+        # NOTE: The config is auto use 'pop' for you
+        # setup display options, status, pop
+        self.display_option = DisplayType.STATUS if self.nvim.vars.get('translate_display_option') == 'status' else DisplayType.POPUP
+
+        # This implementation uses the following variables:
+        #   translate_display_colortype (8 or 16)
+        #   translate_fg_color
+        #   translate_bg_color
+        # NOTE: The config defaults to CTERMColors_8 if no colortype is set
+
+        colorEnum = None
+        colortype = -1 if self.nvim.vars.get("translate_display_colortype") is None else self.nvim.vars.get("translate_display_colortype")
+        if int(colortype) == 8:
+            colorEnum = CTERMColors_8
+        elif int(colortype) == 16:
+            colorEnum = CTERMColors
+        else:
+            colorEnum = CTERMColors_8
+
+        fgColorSelection = ("" if self.nvim.vars.get('translate_fg_color') is None else self.nvim.vars.get('translate_fg_color')).upper()
+        bgColorSelection = ("" if self.nvim.vars.get('translate_bg_color') is None else self.nvim.vars.get('translate_bg_color')).upper()
+
+        self.fg_color = colorEnum[fgColorSelection] if fgColorSelection in colorEnum._member_names_ else colorEnum.DARKGREY.value
+        self.bg_color = colorEnum[bgColorSelection] if bgColorSelection in colorEnum._member_names_ else colorEnum.WHITE.value
+
+
         self.wording_transformer = []
 
         # use 0, 1 to enable or disable the snake style correction, default is 1
@@ -36,9 +104,10 @@ class TranslatePlugin(object):
         for f in self.wording_transformer:
             wait_for_translate = f(wait_for_translate)
 
-        self.post_vim_message(
+        self.display(
             self.engin.translate(wait_for_translate, dest=self.dest_lang).text.strip(),
             warning=False)
+
 
 
     @pynvim.command("TranslateByte", range='', nargs='*')
@@ -118,18 +187,14 @@ class TranslatePlugin(object):
             if warning:
                 self.nvim.command('echohl None')
 
+    def pop(self, message, warning=True, truncate=False):
+        _id = create_window(self.nvim, [message], self.fg_color, self.bg_color, min_height=2);
 
-    def rust_byte_string_to_string(self, wait_for_translate):
-        wait_for_translate = wait_for_translate.split("[")[1].split(']')[0].split(',')
-        output = []
-        for s in wait_for_translate:
-            if h := s.split('u')[0]:
-                for i in filter(lambda x: x, h.split(' ')):
-                    try:
-                        output.append(int(i))
-                    except:
-                        pass
-        return bytearray(output).decode('utf-8')
+    def display(self, message, warning=True, truncate=False):
+        if self.display_option == DisplayType.POPUP:
+            self.pop(message, warning=True, truncate=False)
+        else:
+            self.post_vim_message(message, warning=True, truncate=False)
 
 
 def to_unicode(value):
@@ -144,3 +209,60 @@ def to_unicode(value):
 
 def escape_for_vim(text):
     return to_unicode(text.replace("'", "''"))
+
+def create_window(nvim, textArray, foreground=CTERMColors.WHITE.value, background=CTERMColors.DARKGREY.value, width=20, min_height=1, close_last_window=True, opts=None):
+    """
+    Creates a floating window in nvim. The window position is relative to the cursor and is offset by one column.
+
+    Returns:
+        The handle (ID) of the window, or 0 on error
+    """
+
+    # Convert Enum to integer
+    if type (foreground) == CTERMColors or type (foreground) == CTERMColors_8: foreground = foreground.value
+    if type (background) == CTERMColors or type (background) == CTERMColors_8: background = background.value
+
+    # Close the last created window
+    if(close_last_window and bool(nvim.eval("exists('win')"))):
+      close_window(nvim);
+
+    if opts == None:
+        opts = {
+          'relative': 'cursor',
+          'width':  width,
+          'height': max(len(textArray), min_height),
+          'col': 1,
+          'row': 0,
+          'anchor': 'NW',
+          'style': 'minimal'
+      }
+
+    vimScriptCommand = f"""
+    let buf = nvim_create_buf(v:false, v:true)
+    call nvim_buf_set_lines(buf, 0, -1, v:true, {str(textArray)})
+    let opts = {str(opts)}
+    let win = nvim_open_win(buf, v:true, opts)
+    call nvim_win_set_option(win, 'winhl', 'Normal:popupwindow')
+    highlight popupwindow ctermfg={foreground} ctermbg={background}
+    """;
+
+    nvim.command(vimScriptCommand)
+
+    # Return the ID of the created window
+    return last_window(nvim)
+
+def close_window(nvim, windowID = None):
+    """Close a window based on an ID, or close the most recently created window"""
+
+    if(windowID == None):
+        windowID = last_window(nvim)
+
+    # Only close the window if the ID is registered
+    if(window_exists(nvim, windowID)):
+      nvim.command(f"call nvim_win_close({windowID}, v:true)")
+
+def window_exists(nvim, windowID):
+    return bool(nvim.eval(f"nvim_win_is_valid({windowID})"))
+
+def last_window(nvim):
+    return nvim.eval("win")
