@@ -1,6 +1,6 @@
 # Neovim Translate
 - A neovim plugin for translate
-- version 0.0.7
+- version 0.0.8
 
 ## Requirement
 - neovim
@@ -43,23 +43,33 @@ let g:translate_dest_lang='ja'
 let g:translate_v_line_spacer=" "
 " use 0, 1 to enable or disable the snake style correction, default is 1
 let g:translate_correct_snake_style=1
+" use 8 or 16 to setup the color type
+let g:translate_display_colortype=8
+" setup the colors for pop up window
+" following color can be used 
+" BLACK, DARKBLUE, DARKGREEN, DARKCYAN, DARKRED, DARKMAGENTA, BROWN, GREY, DARKGREY,
+" BLUE, GREEN, CYAN, RED, MAGENTA, YELLOW, WHITE
+let g:translate_fg_color='DARKGREY'
+let g:translate_bg_color='WHITE'
 ```
 
 ## Change log
+- 0.0.8 - Display in pop up window
 - 0.0.7 - Translate byte array into UTF-8 string
 - 0.0.6 - Handle snake style wording
-- 0.0.5 - support V-Line select mode
-- 0.0.4 - update pynvim package
-- 0.0.3 - translate full paragraph function
-- 0.0.2 - translate destinate language setting
-- 0.0.1 - basic function
+- 0.0.5 - Support V-Line select mode
+- 0.0.4 - Update pynvim package
+- 0.0.3 - Translate full paragraph function
+- 0.0.2 - Translate destinate language setting
+- 0.0.1 - Basic function
 
 ## Snapshot
-Translate from foreign language  
+wslate from foreign language  
 ![snapshot](https://raw.githubusercontent.com/yanganto/nvim-translate/master/snapshot.png)
 Translate from byte code  
 ![snapshot](https://raw.githubusercontent.com/yanganto/nvim-translate/master/snapshot2.png)
 
 ## Thanks
-Many thanks for [YouCompleteMe](https://github.com/Valloric/YouCompleteMe) contributor and Google Inc.
-This plugin use lots of function from YouCompleteMe within GNU licence.
+Many thanks for [YouCompleteMe](https://github.com/Valloric/YouCompleteMe) contributor and Google Inc.  
+This plugin use lots of function from YouCompleteMe within GNU licence.  
+Thanks for [viktorKorolyuk](https://github.com/viktorKorolyuk) help me with pop up window feature.  
