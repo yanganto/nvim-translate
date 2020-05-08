@@ -1,14 +1,26 @@
-from os import path
+from enum import Enum
+
 import tempfile
 import pynvim
 from googletrans import Translator
-from enum import Enum
 
 class DisplayType(Enum):
     STATUS = 0
     POPUP = 1
 
-class CTERMColors(Enum):
+class CTERMColorsEnum(Enum):
+    """ Return a validate color else black as fallback """
+    @classmethod
+    def from_str(klass, color):
+        color_name = color.upper()
+        if color_name in ("BLACK", "DARKBLUE", "DARKGREEN", "DARKCYAN", "DARKRED", "DARKMAGENTA",
+                          "BROWN", "GREY", "DARKGREY", "BLUE", "GREEN", "CYAN", "RED", "MAGENTA",
+                          "YELLOW", "WHITE"):
+            return klass[color_name]
+        else:
+            return klass(0)
+
+class CTERMColors(CTERMColorsEnum):
     BLACK = 0
     DARKBLUE = 1
     DARKGREEN = 2
@@ -27,7 +39,7 @@ class CTERMColors(Enum):
     YELLOW = 14
     WHITE = 15
 
-class CTERMColors_8(Enum):
+class CTERMColors_8(CTERMColorsEnum):
     BLACK = 0
     DARKBLUE = 1
     DARKGREEN = 2
@@ -46,6 +58,7 @@ class CTERMColors_8(Enum):
     CYAN = 14
     WHITE = 15
 
+
 @pynvim.plugin
 class TranslatePlugin(object):
 
@@ -62,18 +75,15 @@ class TranslatePlugin(object):
         # if you are using different language, this may set as ""
         self.v_line_spacer = self.nvim.vars.get('translate_v_line_spacer', " ")
 
-        # NOTE: The config is auto use 'pop' for you
         # setup display options, status, pop
         self.display_option = DisplayType.STATUS if self.nvim.vars.get('translate_display_option') == 'status' else DisplayType.POPUP
 
         # This implementation uses the following variables:
-        #   translate_display_colortype (8 or 16)
+        #   translate_display_colortype, should be 8(default) or 16
         #   translate_fg_color
         #   translate_bg_color
-        # NOTE: The config defaults to CTERMColors_8 if no colortype is set
-
         colorEnum = None
-        colortype = -1 if self.nvim.vars.get("translate_display_colortype") is None else self.nvim.vars.get("translate_display_colortype")
+        colortype = self.nvim.vars.get("translate_display_colortype", -1)
         if int(colortype) == 8:
             colorEnum = CTERMColors_8
         elif int(colortype) == 16:
@@ -81,12 +91,8 @@ class TranslatePlugin(object):
         else:
             colorEnum = CTERMColors_8
 
-        fgColorSelection = ("" if self.nvim.vars.get('translate_fg_color') is None else self.nvim.vars.get('translate_fg_color')).upper()
-        bgColorSelection = ("" if self.nvim.vars.get('translate_bg_color') is None else self.nvim.vars.get('translate_bg_color')).upper()
-
-        self.fg_color = colorEnum[fgColorSelection] if fgColorSelection in colorEnum._member_names_ else colorEnum.DARKGREY.value
-        self.bg_color = colorEnum[bgColorSelection] if bgColorSelection in colorEnum._member_names_ else colorEnum.WHITE.value
-
+        self.fg_color = colorEnum.from_str(self.nvim.vars.get('translate_fg_color', "WHITE"))
+        self.bg_color = colorEnum.from_str(self.nvim.vars.get('translate_bg_color', "DARKGREY"))
 
         self.wording_transformer = []
 
@@ -188,7 +194,7 @@ class TranslatePlugin(object):
                 self.nvim.command('echohl None')
 
     def pop(self, message, warning=True, truncate=False):
-        _id = create_window(self.nvim, [message], self.fg_color, self.bg_color, min_height=2);
+        create_window(self.nvim, [message], self.fg_color, self.bg_color, min_height=2)
 
     def display(self, message, warning=True, truncate=False):
         if self.display_option == DisplayType.POPUP:
@@ -210,7 +216,10 @@ def to_unicode(value):
 def escape_for_vim(text):
     return to_unicode(text.replace("'", "''"))
 
-def create_window(nvim, textArray, foreground=CTERMColors.WHITE.value, background=CTERMColors.DARKGREY.value, width=20, min_height=1, close_last_window=True, opts=None):
+def create_window(nvim, textArray, foreground=CTERMColors.WHITE.value,
+                  background=CTERMColors.DARKGREY.value, width=20, min_height=1,
+                  close_last_window=True,
+                  opts=None):
     """
     Creates a floating window in nvim. The window position is relative to the cursor and is offset by one column.
 
@@ -219,23 +228,18 @@ def create_window(nvim, textArray, foreground=CTERMColors.WHITE.value, backgroun
     """
 
     # Convert Enum to integer
-    if type (foreground) == CTERMColors or type (foreground) == CTERMColors_8: foreground = foreground.value
-    if type (background) == CTERMColors or type (background) == CTERMColors_8: background = background.value
+    if type(foreground) == CTERMColors or type(foreground) == CTERMColors_8:
+        foreground = foreground.value
+    if type(background) == CTERMColors or type(background) == CTERMColors_8:
+        background = background.value
 
     # Close the last created window
     if(close_last_window and bool(nvim.eval("exists('win')"))):
-      close_window(nvim);
+        close_window(nvim)
 
-    if opts == None:
-        opts = {
-          'relative': 'cursor',
-          'width':  width,
-          'height': max(len(textArray), min_height),
-          'col': 1,
-          'row': 0,
-          'anchor': 'NW',
-          'style': 'minimal'
-      }
+    if opts is None:
+        opts = dict(relative='cursor', width=width, height=max(len(textArray), min_height), col=1,
+                    row=0, anchor='NW', style='minimal')
 
     vimScriptCommand = f"""
     let buf = nvim_create_buf(v:false, v:true)
@@ -244,25 +248,25 @@ def create_window(nvim, textArray, foreground=CTERMColors.WHITE.value, backgroun
     let win = nvim_open_win(buf, v:true, opts)
     call nvim_win_set_option(win, 'winhl', 'Normal:popupwindow')
     highlight popupwindow ctermfg={foreground} ctermbg={background}
-    """;
+    """
 
     nvim.command(vimScriptCommand)
 
     # Return the ID of the created window
     return last_window(nvim)
 
-def close_window(nvim, windowID = None):
+def close_window(nvim, window_id=None):
     """Close a window based on an ID, or close the most recently created window"""
 
-    if(windowID == None):
-        windowID = last_window(nvim)
+    if(window_id is None):
+        window_id = last_window(nvim)
 
     # Only close the window if the ID is registered
-    if(window_exists(nvim, windowID)):
-      nvim.command(f"call nvim_win_close({windowID}, v:true)")
+    if(window_exists(nvim, window_id)):
+        nvim.command(f"call nvim_win_close({window_id}, v:true)")
 
-def window_exists(nvim, windowID):
-    return bool(nvim.eval(f"nvim_win_is_valid({windowID})"))
+def window_exists(nvim, window_id):
+    return bool(nvim.eval(f"nvim_win_is_valid({window_id})"))
 
 def last_window(nvim):
     return nvim.eval("win")
