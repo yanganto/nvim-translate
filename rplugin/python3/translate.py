@@ -194,7 +194,7 @@ class TranslatePlugin(object):
                 self.nvim.command('echohl None')
 
     def pop(self, message, warning=True, truncate=False):
-        create_window(self.nvim, [message], self.fg_color, self.bg_color, min_height=2)
+        create_window(self.nvim, [message], self.fg_color, self.bg_color, min_height=int(len(message)/60) + 1)
 
     def display(self, message, warning=True, truncate=False):
         if self.display_option == DisplayType.POPUP:
@@ -217,7 +217,7 @@ def escape_for_vim(text):
     return to_unicode(text.replace("'", "''"))
 
 def create_window(nvim, textArray, foreground=CTERMColors.WHITE.value,
-                  background=CTERMColors.DARKGREY.value, width=20, min_height=1,
+                  background=CTERMColors.DARKGREY.value, width=60, min_height=1,
                   close_last_window=True,
                   opts=None):
     """
