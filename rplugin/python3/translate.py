@@ -1,4 +1,5 @@
 from enum import Enum
+from os import path
 
 import tempfile
 import pynvim
@@ -75,7 +76,7 @@ class TranslatePlugin(object):
         # if you are using different language, this may set as ""
         self.v_line_spacer = self.nvim.vars.get('translate_v_line_spacer', " ")
 
-        # setup display options, status, pop
+        # setup display options, status, popup
         self.display_option = DisplayType.STATUS if self.nvim.vars.get('translate_display_option') == 'status' else DisplayType.POPUP
 
         # This implementation uses the following variables:

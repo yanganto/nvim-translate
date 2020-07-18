@@ -36,15 +36,23 @@ set translate target language as following in `init.vim`
 " use local string to setup the target language such as 'zh-TW', 'ja', 
 " default is 'zh-TW'
 let g:translate_dest_lang='ja'
+
 " the spacer between lines,
 " some plugin will automatically trim the space in the end of line
 " so the spacer set " " as default for english
 " if you are using different language, this may set as ""
 let g:translate_v_line_spacer=" "
+
+" the translation display on `popup` windows or `status` bar
+" default is 'popup'
+let g:translate_display_option="status"
+
 " use 0, 1 to enable or disable the snake style correction, default is 1
 let g:translate_correct_snake_style=1
+
 " use 8 or 16 to setup the color type
 let g:translate_display_colortype=8
+
 " setup the colors for pop up window
 " following color can be used 
 " BLACK, DARKBLUE, DARKGREEN, DARKCYAN, DARKRED, DARKMAGENTA, BROWN, GREY, DARKGREY,
